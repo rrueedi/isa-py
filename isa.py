@@ -217,7 +217,6 @@ def itersigal(rcA,\
               sthr=[1,2,3],sthc=[1,2,3],\
               maxiter=20,\
               sweep=True):
-    import isafuncs
 
     nr, nc = rcA.shape
     nthr = len(sthr)
@@ -232,9 +231,9 @@ def itersigal(rcA,\
     # // implement sparse seeds
 
     rsSD = \
-    isafuncs.buildseeds(nr,ns=nseed,seedsparsity=seedsparsity)
+    buildseeds(nr,ns=nseed,seedsparsity=seedsparsity)
     rsSD_shuffled = \
-    isafuncs.buildseeds(nr,ns=50,seedsparsity=seedsparsity)
+    buildseeds(nr,ns=50,seedsparsity=seedsparsity)
 
     # ----- ----------------
     #       robustness floor
@@ -245,10 +244,10 @@ def itersigal(rcA,\
     # on the shuffled entry matrix
 
     rcA_shuffled = \
-    isafuncs.shuffle(rcA)
+    shuffle(rcA)
 
     rcCC_shuffled, crRR_shuffled = \
-    isafuncs.normalize(rcA_shuffled,method=normalisation_method)
+    normalize(rcA_shuffled,method=normalisation_method)
 
     sfloorROB = numpy.zeros([nthr,nthc])
 
@@ -258,7 +257,7 @@ def itersigal(rcA,\
         for jthc in range(nthc):
             thc=sthc[jthc]
             rsSR_shf, csSC_shf, sROB = \
-            isafuncs.modisa(\
+            modisa(\
                             crRR_shuffled,rcCC_shuffled,\
                             rsSD_shuffled,thr,thc,sgr,sgc,\
                             maxiter,dconverged,dsame)
@@ -272,7 +271,7 @@ def itersigal(rcA,\
     # ISA run
 
     rcCC, crRR = \
-    isafuncs.normalize(rcA,method=normalisation_method)
+    normalize(rcA,method=normalisation_method)
 
     rsSR = numpy.empty((nr,0))
     csSC = numpy.empty((nc,0))
@@ -286,7 +285,7 @@ def itersigal(rcA,\
             thc=sthc[jthc]
             floorROB=sfloorROB[jthr,jthc]
             rsSR, csSC, sROB, sTHR, sTHC = \
-            isafuncs.modcore(\
+            modcore(\
                              crRR,rcCC,rsSR,csSC,\
                              sROB,rsSD,sTHR,sTHC,floorROB,\
                              thr,thc,sgr,sgc,maxiter,dconverged,dsame)
@@ -308,7 +307,7 @@ def itersigal(rcA,\
                 thc=sthc[jthc]
                 floorROB=sfloorROB[jthr,jthc]
                 rsSR, csSC, sROB, sTHR, sTHC = \
-                isafuncs.modcore(\
+                modcore(\
                                  crRR,rcCC,rsSR,csSC,\
                                  sROB,rsSR,sTHR,sTHC,floorROB,\
                                  thr,thc,sgr,sgc,maxiter,dconverged,dsame)
