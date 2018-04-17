@@ -35,6 +35,7 @@ def main():
     A = pandas.read_csv(options.inpfile,index_col=0,header=0)
     A = A.fillna(0)
     a = A.values
+    print('/ --- matrix : '+'{:d}'.format(a.shape[0])+'x'+'{:d}'.format(a.shape[1]))
     sthr = [float(x) for x in options.thr]
     sthc = [float(x) for x in options.thc]
     rsSR, csSC, sROB, sTHR, sTHC = \
