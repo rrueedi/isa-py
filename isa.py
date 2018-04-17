@@ -30,7 +30,7 @@ def purge(A,delta):
         se = C.sum(axis=1)==1
     else:
         se = [True]
-    return se
+    return numpy.array(se)
 
 def normalize(rc_EE,method='double'):
     if method=='single':
