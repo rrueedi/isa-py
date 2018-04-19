@@ -19,6 +19,7 @@ def main():
     
     parser.add_option('-i','--inputfile',dest='inpfile',type='string')
     parser.add_option('-o','--outputfile',dest='outfile',type='string',default='itsi.csv')
+    parser.add_option('--seedmatrix',dest='seedfile',type='string',default=None)
     parser.add_option('--dsame',dest='dsame',type='float',default=0.80)
     parser.add_option('--dconv',dest='dconv',type='float',default=0.975)
     parser.add_option('--nseed',dest='nseed',type='int',default=100)
@@ -35,11 +36,22 @@ def main():
     A = pandas.read_csv(options.inpfile,index_col=0,header=0)
     A = A.fillna(0)
     a = A.values
+    
     print('/ --- matrix : '+'{:d}'.format(a.shape[0])+'x'+'{:d}'.format(a.shape[1]))
+    
+    print(options.seedfile)
+    if options.seedfile:
+        S = pandas.read_csv(options.seedfile,header=None,index_col=None)
+        S = S.fillna(0)
+        s = S.values
+        print('/ --- seed matrix loaded : '+'{:d}'.format(s.shape[0])+'x'+'{:d}'.format(s.shape[1]))
+    else:
+        s = None
+        
     sthr = [float(x) for x in options.thr]
     sthc = [float(x) for x in options.thc]
     rsSR, csSC, sROB, sTHR, sTHC = \
-    isa.itersigal(a,\
+    isa.itersigal(a,rsSD=s,\
               sgr=numpy.sign(options.sgr),\
               sgc=numpy.sign(options.sgc),\
               seedsparsity=options.seedsparsity,\

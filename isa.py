@@ -209,7 +209,7 @@ def modcore(crRR,rcCC,rsSR,csSC,sROB,rsSEEDS,sTHR,sTHC,floorROB,thr,thc,sgr,sgc,
 
     return rsSRF, csSCF, sROBF, sTHRF, sTHCF
 
-def itersigal(rcA,\
+def itersigal(rcA,rsSD=None,\
               sgr=0,sgc=1,\
               seedsparsity=0,nseed=100,\
               normalisation_method='double',\
@@ -229,11 +229,11 @@ def itersigal(rcA,\
     # // missing feature(s)
     # // allow the user to provide a seed matrix
     # // implement sparse seeds
-
-    rsSD = \
-    buildseeds(nr,ns=nseed,seedsparsity=seedsparsity)
-    rsSD_shuffled = \
-    buildseeds(nr,ns=50,seedsparsity=seedsparsity)
+    if not(rsSD):
+        rsSD = \
+        buildseeds(nr,ns=nseed,seedsparsity=seedsparsity)
+        rsSD_shuffled = \
+        buildseeds(nr,ns=50,seedsparsity=seedsparsity)
 
     # ----- ----------------
     #       robustness floor
