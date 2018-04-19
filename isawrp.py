@@ -11,14 +11,19 @@ import pandas, numpy
 from optparse import OptionParser
 
 def main():    
-   
-    def fcb(option, opt, value, parser):
-        setattr(parser.values, option.dest, value.split(','))
+
+    # ----- --------------
+    #       option parsing
+    #       -------------- -----
+    # 
+    # seeds are either provided as a matrix (good to reproduce results)
+    # or created by ISA 
+    #
     usage = "usage: %prog [options] arg"
     parser = OptionParser(usage)
     
     parser.add_option('-i','--inputfile',dest='inpfile',type='string')
-    parser.add_option('-o','--outputfile',dest='outfile',type='string',default='itsi.csv')
+    parser.add_option('-o','--outputfile',dest='outfile',type='string',default='isa.csv')
     parser.add_option('--seedmatrix',dest='seedfile',type='string',default=None)
     parser.add_option('--dsame',dest='dsame',type='float',default=0.80)
     parser.add_option('--dconv',dest='dconv',type='float',default=0.975)
@@ -27,12 +32,18 @@ def main():
     parser.add_option('--maxiter',dest='maxiter',type='int',default=50)
     parser.add_option('--sgc',dest='sgc',type='int',default=0)
     parser.add_option('--sgr',dest='sgr',type='int',default=1)
-    parser.add_option('--thc',dest='thc',type='string',action='callback',callback=fcb,default=[1,2,3])
-    parser.add_option('--thr',dest='thr',type='string',action='callback',callback=fcb,default=[1,2,3])
+    parser.add_option('--thc',dest='thc',type='string',default='1,2,3')
+    parser.add_option('--thr',dest='thr',type='string',default='1,2,3')
     parser.add_option('--norm',dest='norm',type='string',default='double')
 
     (options, args) = parser.parse_args()
     
+    # ----- -------------------
+    #       reading data matrix
+    #       ------------------- -----
+    # 
+    # for the moment, missing values are not handled
+    #
     A = pandas.read_csv(options.inpfile,index_col=0,header=0)
     A = A.fillna(0)
     a = A.values
@@ -41,16 +52,72 @@ def main():
     
     print('/ --- matrix : '+'{:d}'.format(a.shape[0])+'x'+'{:d}'.format(a.shape[1]))
     
+    # ----- ----------------
+    #       handling seeding
+    #       ---------------- -----
+    # 
+    # seeds are either provided as a matrix (good to reproduce results)
+    # or created by ISA 
+    #
     if options.seedfile:
         S = pandas.read_csv(options.seedfile,header=None,index_col=None)
         S = S.fillna(0)
         s = S.values
-        print('/ --- seed matrix loaded : '+'{:d}'.format(s.shape[0])+'x'+'{:d}'.format(s.shape[1]))
+        print('/ --- seed matrix loaded : '+\
+              '{:d}'.format(s.shape[0])+'x'+'{:d}'.format(s.shape[1]))
     else:
         s = None
-        
-    sthr = [float(x) for x in options.thr]
-    sthc = [float(x) for x in options.thc]
+
+    # ----- -------------------------
+    #       handling threshold inputs
+    #       ------------------------- -----
+    # 
+    # allow the user to pass a list of thresholds, or a range
+    # presumably, there's a better way to handle this than strings
+    #
+    sthr = options.thr
+    if ',' in sthr:
+        sthr = [float(x) for x in sthr.split(',')]
+        sthr = numpy.array(sthr)
+        sthr.sort()
+    elif ':' in sthr:
+        sthr = [float(x) for x in sthr.split(':')]
+        if len(sthr)==3:
+            sthr = numpy.arange(sthr[0],sthr[2],sthr[1])
+            sthr.sort()
+        else:
+            sthr = numpy.array([1,2,3])
+    else:
+         sthr = float(sthr)       
+    print('/ --- row thresholds : ')
+    print('     ',end='')
+    for x in sthr:
+        print(' '+'{:.2f}'.format(x),end='',flush=True)
+    print('\n/')
+         
+    sthc = options.thc
+    if ',' in sthc:
+        sthc = [float(x) for x in sthc.split(',')]
+        sthc = numpy.array(sthc)
+        sthc.sort()
+    elif ':' in sthc:
+        sthc = [float(x) for x in sthc.split(':')]
+        if len(sthc)==3:
+            sthc = numpy.arange(sthc[0],sthc[2],sthc[1])
+            sthc.sort()
+        else:
+            sthc = numpy.array([1,2,3])
+    else:
+        sthc = float(sthc)
+    print('/ --- column thresholds : ')
+    print('     ',end='')
+    for x in sthc:
+        print(' '+'{:.2f}'.format(x),end='',flush=True)
+    print('\n/')
+    # ----- ---
+    #       ISA
+    #       --- -----
+    # 
     rsSR, csSC, sROB, sTHR, sTHC = \
     isa.itersigal(a,rsSD=s,\
               sgr=numpy.sign(options.sgr),\
@@ -63,6 +130,14 @@ def main():
               sthr=sthr,\
               sthc=sthc,\
               maxiter=options.maxiter)
+
+    # ----- ----------------------
+    #       writing output to file
+    #       ---------------------- -----
+    # 
+    # works, but could be rethought
+    # needs to make sense with phenomenal
+    # 
     idx=['row_threshold','col_threshold','robustness']
     idx.extend(A.index)
     idx.extend(A.columns)

@@ -250,7 +250,6 @@ def itersigal(rcA,rsSD=None,\
     normalize(rcA_shuffled,method=normalisation_method)
 
     sfloorROB = numpy.zeros([nthr,nthc])
-
     print('\n/ --- computing robustness floor\n')
     for jthr in range(nthr):
         thr=sthr[jthr]
@@ -261,7 +260,10 @@ def itersigal(rcA,rsSD=None,\
                             crRR_shuffled,rcCC_shuffled,\
                             rsSD_shuffled,thr,thc,sgr,sgc,\
                             maxiter,dconverged,dsame)
-            sfloorROB[jthr,jthc] = numpy.max(sROB)
+            if len(sROB)>0:
+                sfloorROB[jthr,jthc] = numpy.max(sROB)
+            else:
+                sfloorROB[jthr,jthc] = 0
             print('+',end='',flush=True)
         print('/\n',end='',flush=True)
     # ----- -----------
