@@ -37,9 +37,10 @@ def main():
     A = A.fillna(0)
     a = A.values
     
+    print('/ --- ISA wrapper 2018-04-19/16:00\n')
+    
     print('/ --- matrix : '+'{:d}'.format(a.shape[0])+'x'+'{:d}'.format(a.shape[1]))
     
-    print(options.seedfile)
     if options.seedfile:
         S = pandas.read_csv(options.seedfile,header=None,index_col=None)
         S = S.fillna(0)
