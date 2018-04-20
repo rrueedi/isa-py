@@ -35,6 +35,7 @@ def main():
     parser.add_option('--thc',dest='thc',type='string',default='1,2,3')
     parser.add_option('--thr',dest='thr',type='string',default='1,2,3')
     parser.add_option('--norm',dest='norm',type='string',default='double')
+    parser.add_option('--nt',dest='nt',type='int',default=0)
 
     (options, args) = parser.parse_args()
     
@@ -130,7 +131,19 @@ def main():
               sthr=sthr,\
               sthc=sthc,\
               maxiter=options.maxiter)
-
+    
+    # ----- -----------------
+    #       non-binary scores
+    #       ----------------- -----
+    #
+    if ( options.nt == 1 ):
+        rcCC, crRR = \
+        isa.normalize(a,method=options.norm)
+        csSC = \
+        isa.multiply(crRR,rsSR)
+        rsSR = \
+        isa.multiply(rcCC,csSC)
+    
     # ----- ----------------------
     #       writing output to file
     #       ---------------------- -----
