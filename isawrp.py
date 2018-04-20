@@ -139,10 +139,15 @@ def main():
     if ( options.nt == 1 ):
         rcCC, crRR = \
         isa.normalize(a,method=options.norm)
-        csSC = \
-        isa.multiply(crRR,rsSR)
+        csSC2 = \
+        isa.isamultiply(crRR,rsSR)
+        tm = abs(csSC2)
+        csSC2 = csSC2/tm.max(axis=0)
         rsSR = \
-        isa.multiply(rcCC,csSC)
+        isa.isamultiply(rcCC,csSC)
+        tm = abs(rsSR)
+        rsSR = rsSR/tm.max(axis=0)
+        csSC = csSC2
     
     # ----- ----------------------
     #       writing output to file

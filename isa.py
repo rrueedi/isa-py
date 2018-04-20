@@ -58,8 +58,9 @@ def signature(dsA,thd,sgd):
     if sgd == -1:  dsZ=dsA*t2
     elif sgd == 1: dsZ=dsA*t1
     else: dsZ=dsA*(t1|t2)
-
-    dsZmax = dsZ.max(axis=0)
+    
+    tm = abs(dsZ)
+    dsZmax = tm.max(axis=0)
     dsZmax[dsZmax==0]=1
     dsZ=dsZ/dsZmax
     return dsZ
@@ -219,6 +220,9 @@ def itersigal(rcA,rsSD=None,\
               sweep=True):
 
     nr, nc = rcA.shape
+    if type(sthr) in [int,float]: sthr=[sthr]
+    if type(sthc) in [int,float]: sthc=[sthc]
+    
     nthr = len(sthr)
     nthc = len(sthc)
 
@@ -229,11 +233,14 @@ def itersigal(rcA,rsSD=None,\
     # // missing feature(s)
     # // allow the user to provide a seed matrix
     # // implement sparse seeds
-    if not(rsSD):
+    if not(type(rsSD)==numpy.ndarray):
         rsSD = \
         buildseeds(nr,ns=nseed,seedsparsity=seedsparsity)
         rsSD_shuffled = \
         buildseeds(nr,ns=50,seedsparsity=seedsparsity)
+    else :
+        rsSD_shuffled = rsSD
+            
 
     # ----- ----------------
     #       robustness floor
