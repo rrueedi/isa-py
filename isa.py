@@ -89,7 +89,7 @@ def robustness(crRR,rcCC,rsSR,csSC):
     sROB=(sROBR*sROBC)**(1/2)
     return sROB
 
-def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame):
+def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True):
     nr, nc = rcCC.shape
     csSC_proj = isamultiply(crRR,rsSR)
     csSC_prev = signature(csSC_proj,thc,sgc)
@@ -137,17 +137,16 @@ def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame):
             sROBF = sROBF[esortbyrob]
             rsSRF = numpy.hstack([rsSRF,rsSR_sub])[:,esortbyrob]
             csSCF = numpy.hstack([csSCF,csSC_sub])[:,esortbyrob]
+            
+            if doPurge:
+                if (nr<nc):
+                    ediff=purge(rsSRF,dsame)
+                else:
+                    ediff=purge(csSCF,dsame)
 
-            if (nr<nc):
-                ediff=purge(rsSRF,dsame)
-            else:
-                ediff=purge(csSCF,dsame)
-
-            tm = rsSRF.shape[1]-numpy.where(ediff)[0].shape[0]
-
-            sROBF=sROBF[ediff]
-            rsSRF=rsSRF[:,ediff]
-            csSCF=csSCF[:,ediff]
+                sROBF=sROBF[ediff]
+                rsSRF=rsSRF[:,ediff]
+                csSCF=csSCF[:,ediff]
 
         # keep iterating on non-converged
         csSC_prev=csSC_prev[:,~isconverged]
@@ -158,7 +157,7 @@ def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame):
 
     return rsSRF, csSCF, sROBF
 
-def modcore(crRR,rcCC,rsSR,csSC,sROB,rsSEEDS,sTHR,sTHC,floorROB,thr,thc,sgr,sgc,maxiter,dconverged,dsame):
+def modcore(crRR,rcCC,rsSR,csSC,sROB,rsSEEDS,sTHR,sTHC,floorROB,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True):
     nr, nc = crRR.shape
     rsSRO,csSCO,sROBO = \
     modisa(crRR,rcCC,rsSEEDS,thr,thc,sgr,sgc,maxiter,dconverged,dsame)
@@ -186,19 +185,18 @@ def modcore(crRR,rcCC,rsSR,csSC,sROB,rsSEEDS,sTHR,sTHC,floorROB,thr,thc,sgr,sgc,
             sROBF=numpy.concatenate([sROB,sROBO])
             sTHRF=numpy.concatenate([sTHR,thr*numpy.ones(sROBO.shape)])
             sTHCF=numpy.concatenate([sTHC,thc*numpy.ones(sROBO.shape)])
-
-            if (nr<nc):
-                ediff=purge(rsSRF,dsame)
-            else:
-                ediff=purge(csSCF,dsame)
-
-            sROBF=sROBF[ediff]
-            sTHRF=sTHRF[ediff]
-            sTHCF=sTHCF[ediff]
-            rsSRF=rsSRF[:,ediff]
-            csSCF=csSCF[:,ediff]
-
-            tm = rsSRF.shape[1]-numpy.where(ediff)[0].shape[0]
+            
+            if doPurge:
+                if (nr<nc):
+                    ediff=purge(rsSRF,dsame)
+                else:
+                    ediff=purge(csSCF,dsame)
+    
+                sROBF=sROBF[ediff]
+                sTHRF=sTHRF[ediff]
+                sTHCF=sTHCF[ediff]
+                rsSRF=rsSRF[:,ediff]
+                csSCF=csSCF[:,ediff]
 
         else:
 
@@ -217,7 +215,8 @@ def itersigal(rcA,rsSD=None,\
               dconverged=0.975,dsame=0.90,\
               sthr=[1,2,3],sthc=[1,2,3],\
               maxiter=20,\
-              sweep=True):
+              sweep=True,\
+              doPurge=True):
 
     nr, nc = rcA.shape
     if type(sthr) in [int,float]: sthr=[sthr]
@@ -257,6 +256,8 @@ def itersigal(rcA,rsSD=None,\
     normalize(rcA_shuffled,method=normalisation_method)
 
     sfloorROB = numpy.zeros([nthr,nthc])
+    if not(doPurge):
+        print('\n/ --- purging is off\n')
     print('\n/ --- computing robustness floor\n')
     for jthr in range(nthr):
         thr=sthr[jthr]
@@ -297,7 +298,7 @@ def itersigal(rcA,rsSD=None,\
             modcore(\
                              crRR,rcCC,rsSR,csSC,\
                              sROB,rsSD,sTHR,sTHC,floorROB,\
-                             thr,thc,sgr,sgc,maxiter,dconverged,dsame)
+                             thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge)
             print('+',end='',flush=True)
         print('/\n',end='',flush=True)
 
@@ -319,7 +320,7 @@ def itersigal(rcA,rsSD=None,\
                 modcore(\
                                  crRR,rcCC,rsSR,csSC,\
                                  sROB,rsSR,sTHR,sTHC,floorROB,\
-                                 thr,thc,sgr,sgc,maxiter,dconverged,dsame)
+                                 thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge)
                 print('+',end='',flush=True)
             print('/\n',end='',flush=True)
 

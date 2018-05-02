@@ -36,6 +36,8 @@ def main():
     parser.add_option('--thr',dest='thr',type='string',default='1,2,3')
     parser.add_option('--norm',dest='norm',type='string',default='double')
     parser.add_option('--nt',dest='nt',type='int',default=0)
+    parser.add_option('--nopurge',action='store_true',dest='nopurge',default=False)
+    parser.add_option('--nosweep',action='store_true',dest='nosweep',default=False)
 
     (options, args) = parser.parse_args()
     
@@ -130,7 +132,8 @@ def main():
               dsame=options.dsame,\
               sthr=sthr,\
               sthc=sthc,\
-              maxiter=options.maxiter)
+              maxiter=options.maxiter,\
+              doPurge=not(options.nopurge))
     
     # ----- -----------------
     #       non-binary scores
