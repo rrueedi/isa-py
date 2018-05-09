@@ -35,10 +35,11 @@ def main():
     parser.add_option('--thc',dest='thc',type='string',default='1,2,3')
     parser.add_option('--thr',dest='thr',type='string',default='1,2,3')
     parser.add_option('--norm',dest='norm',type='string',default='double')
-    parser.add_option('--nt',dest='nt',type='int',default=0)
+    parser.add_option('--nt',action='store_true',dest='nt',default=False)
     parser.add_option('--nopurge',action='store_true',dest='nopurge',default=False)
+    parser.add_option('--quiet',action='store_true',dest='quiet',default=False)
     parser.add_option('--nosweep',action='store_true',dest='nosweep',default=False)
-
+    parser.add_option('--onefile',action='store_true',dest='onefile',default=False)
     (options, args) = parser.parse_args()
     
     # ----- -------------------
@@ -51,9 +52,9 @@ def main():
     A = A.fillna(0)
     a = A.values
     
-    print('/ --- ISA wrapper 2018-04-19/16:00\n')
+    print('/\n/\n/ --- ISA wrapper 2018-04-19/16:00\n/\n/')
     
-    print('/ --- matrix : '+'{:d}'.format(a.shape[0])+'x'+'{:d}'.format(a.shape[1]))
+    print('\n/ --- matrix : \n      '+'{:d}'.format(a.shape[0])+'x'+'{:d}'.format(a.shape[1]))
     
     # ----- ----------------
     #       handling seeding
@@ -66,7 +67,7 @@ def main():
         S = pandas.read_csv(options.seedfile,header=None,index_col=None)
         S = S.fillna(0)
         s = S.values
-        print('/ --- seed matrix loaded : '+\
+        print('\n/ --- seed matrix loaded : '+\
               '{:d}'.format(s.shape[0])+'x'+'{:d}'.format(s.shape[1]))
     else:
         s = None
@@ -92,7 +93,7 @@ def main():
             sthr = numpy.array([1,2,3])
     else:
          sthr = float(sthr)       
-    print('/ --- row thresholds : ')
+    print('\n/ --- row thresholds : ')
     print('     ',end='')
     for x in sthr:
         print(' '+'{:.2f}'.format(x),end='',flush=True)
@@ -122,7 +123,7 @@ def main():
     #       --- -----
     # 
     rsSR, csSC, sROB, sTHR, sTHC = \
-    isa.itersigal(a,rsSD=s,\
+    isa.isa(a,rsSD=s,\
               sgr=numpy.sign(options.sgr),\
               sgc=numpy.sign(options.sgc),\
               seedsparsity=options.seedsparsity,\
@@ -133,24 +134,28 @@ def main():
               sthr=sthr,\
               sthc=sthc,\
               maxiter=options.maxiter,\
+              nonthreshout=options.nt,\
+              quiet=options.quiet,\
+              sweep=not(options.nosweep),\
               doPurge=not(options.nopurge))
     
     # ----- -----------------
     #       non-binary scores
     #       ----------------- -----
     #
-    if ( options.nt == 1 ):
-        rcCC, crRR = \
-        isa.normalize(a,method=options.norm)
-        csSC2 = \
-        isa.isamultiply(crRR,rsSR)
-        tm = abs(csSC2)
-        csSC2 = csSC2/tm.max(axis=0)
-        rsSR = \
-        isa.isamultiply(rcCC,csSC)
-        tm = abs(rsSR)
-        rsSR = rsSR/tm.max(axis=0)
-        csSC = csSC2
+    
+#    if ( options.nt == 1 ):
+#        rcCC, crRR = \
+#        isa.normalize(a,method=options.norm)
+#        csSC2 = \
+#        isa.isamultiply(crRR,rsSR)
+#        tm = abs(csSC2)
+#        csSC2 = csSC2/tm.max(axis=0)
+#        rsSR = \
+#        isa.isamultiply(rcCC,csSC)
+#        tm = abs(rsSR)
+#        rsSR = rsSR/tm.max(axis=0)
+#        csSC = csSC2
     
     # ----- ----------------------
     #       writing output to file
@@ -159,14 +164,33 @@ def main():
     # works, but could be rethought
     # needs to make sense with phenomenal
     # 
-    idx=['row_threshold','col_threshold','robustness']
-    idx.extend(A.index)
-    idx.extend(A.columns)
     nf = '{:0'+str(int(numpy.ceil(numpy.log10(0.5+len(sROB)))))+'d}'
+    idx = ['row_threshold','col_threshold','robustness']
+    ff = options.outfile
     
-    col = ['M'+nf.format(x) for x in range(len(sROB))]
-    B=pandas.DataFrame(numpy.vstack([sTHR,sTHC,sROB,rsSR,csSC]),index=idx,columns=col)
-    B.to_csv(options.outfile)
+    if (options.onefile):
+        
+        col = ['M'+nf.format(x) for x in range(len(sROB))]
+        
+        idx.extend(A.index)
+        idx.extend(A.columns)
+        
+        B=pandas.DataFrame(numpy.vstack([sTHR,sTHC,sROB,rsSR,csSC]),index=idx,columns=col)
+        B.to_csv(ff)
+        
+    else:
+        
+        col = ['isa/M'+nf.format(x) for x in range(len(sROB))]
+        
+        tm = pandas.DataFrame(numpy.vstack([sTHR,sTHC,sROB]),index=idx,columns=col)
+        tm.to_csv(ff.replace('csv','info.csv'))
+        
+        tm = pandas.DataFrame(rsSR,index=A.index,columns=col)
+        tm.to_csv(ff.replace('csv','rowscore.csv'))
+        
+        tm = pandas.DataFrame(csSC,index=A.columns,columns=col)
+        tm.to_csv(ff.replace('csv','colscore.csv'))        
+        
     
 if __name__ == '__main__':
     main()

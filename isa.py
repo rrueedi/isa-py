@@ -7,6 +7,11 @@ import numpy
 from scipy import stats
 from scipy.stats.stats import pearsonr
 
+def pp(q,str):
+    if not(q):
+        print(str)
+    return None
+        
 def buildseeds(nr,ns=100,seedsparsity=0):
     seeds = numpy.random.rand(nr,ns)
     if seedsparsity!=0:
@@ -93,28 +98,30 @@ def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True)
     nr, nc = rcCC.shape
     csSC_proj = isamultiply(crRR,rsSR)
     csSC_prev = signature(csSC_proj,thc,sgc)
-
+    
     i = 0
 
     rsSRF = numpy.empty((nr,0))
     csSCF = numpy.empty((nc,0))
     sROBF = numpy.array([])
-
+    
     while (i<maxiter) & (csSC_prev.shape[1]>0):
-
+        
         i=i+1
 
         rsSR_proj = isamultiply(rcCC,csSC_prev)
         rsSR = signature(rsSR_proj,thr,sgr)
 
-        mk = (numpy.abs(rsSR)>1e-12).any(axis=0)
+        mk = (numpy.abs(rsSR)>1e-12).any(axis=0) \
+            & (~numpy.isnan(rsSR).any(axis=0))
         rsSR=rsSR[:,mk]
         csSC_prev=csSC_prev[:,mk]
 
         csSC_proj = isamultiply(crRR,rsSR)
         csSC = signature(csSC_proj,thc,sgc)
 
-        mk = (numpy.abs(csSC)>1e-12).any(axis=0)
+        mk = (numpy.abs(csSC)>1e-12).any(axis=0) \
+            & (~numpy.isnan(csSC).any(axis=0))
         csSC=csSC[:,mk]
         rsSR=rsSR[:,mk]
         csSC_prev=csSC_prev[:,mk]
@@ -208,7 +215,7 @@ def modcore(crRR,rcCC,rsSR,csSC,sROB,rsSEEDS,sTHR,sTHC,floorROB,thr,thc,sgr,sgc,
 
     return rsSRF, csSCF, sROBF, sTHRF, sTHCF
 
-def itersigal(rcA,rsSD=None,\
+def isa(rcA,rsSD=None,\
               sgr=0,sgc=1,\
               seedsparsity=0,nseed=100,\
               normalisation_method='double',\
@@ -216,6 +223,8 @@ def itersigal(rcA,rsSD=None,\
               sthr=[1,2,3],sthc=[1,2,3],\
               maxiter=20,\
               sweep=True,\
+              nonthreshout=False,\
+              quiet=False,\
               doPurge=True):
 
     nr, nc = rcA.shape
@@ -257,8 +266,8 @@ def itersigal(rcA,rsSD=None,\
 
     sfloorROB = numpy.zeros([nthr,nthc])
     if not(doPurge):
-        print('\n/ --- purging is off\n')
-    print('\n/ --- computing robustness floor\n')
+        pp(quiet,'\n/ --- purging is off\n')
+    pp(quiet,'\n/ --- computing robustness floor\n')
     for jthr in range(nthr):
         thr=sthr[jthr]
         for jthc in range(nthc):
@@ -272,8 +281,9 @@ def itersigal(rcA,rsSD=None,\
                 sfloorROB[jthr,jthc] = numpy.max(sROB)
             else:
                 sfloorROB[jthr,jthc] = 0
-            print('+',end='',flush=True)
-        print('/\n',end='',flush=True)
+            if not(quiet) : print('+',end='',flush=True)
+        if not(quiet) : print('/\n',end='',flush=True)
+        
     # ----- -----------
     #       initial run
     #       ----------- -----
@@ -288,7 +298,7 @@ def itersigal(rcA,rsSD=None,\
     sROB = numpy.array([])
     sTHR = numpy.array([])
     sTHC = numpy.array([])
-    print('\n/ --- getting modules\n')
+    pp(quiet,'\n/ --- getting modules\n')
     for jthr in range(nthr):
         thr=sthr[jthr]
         for jthc in range(nthc):
@@ -299,8 +309,8 @@ def itersigal(rcA,rsSD=None,\
                              crRR,rcCC,rsSR,csSC,\
                              sROB,rsSD,sTHR,sTHC,floorROB,\
                              thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge)
-            print('+',end='',flush=True)
-        print('/\n',end='',flush=True)
+            if not(quiet) : print('+',end='',flush=True)
+        if not(quiet) : print('/\n',end='',flush=True)
 
     # ----- -----
     #       sweep
@@ -310,7 +320,7 @@ def itersigal(rcA,rsSD=None,\
     # Can be turned off with 'sweep' setting
 
     if (sweep)&((nthr>1)|(nthc>1)):
-        print('\n/ --- sweeping\n')
+        pp(quiet,'\n/ --- sweeping\n')
         for jthr in range(nthr):
             thr=sthr[jthr]
             for jthc in range(nthc):
@@ -321,7 +331,18 @@ def itersigal(rcA,rsSD=None,\
                                  crRR,rcCC,rsSR,csSC,\
                                  sROB,rsSR,sTHR,sTHC,floorROB,\
                                  thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge)
-                print('+',end='',flush=True)
-            print('/\n',end='',flush=True)
+                if not(quiet) : print('+',end='',flush=True)
+            if not(quiet) : print('/\n',end='',flush=True)
 
+    if (nonthreshout):
+        csSC2 = \
+        isamultiply(crRR,rsSR)
+        tm = abs(csSC2)
+        csSC2 = csSC2/tm.max(axis=0)
+        rsSR = \
+        isamultiply(rcCC,csSC)
+        tm = abs(rsSR)
+        rsSR = rsSR/tm.max(axis=0)
+        csSC = csSC2
+        
     return rsSR, csSC, sROB, sTHR, sTHC
