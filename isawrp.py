@@ -36,6 +36,8 @@ def main():
     parser.add_option('--thr',dest='thr',type='string',default='1,2,3')
     parser.add_option('--norm',dest='norm',type='string',default='double')
     parser.add_option('--nt',action='store_true',dest='nt',default=False)
+    parser.add_option('--inputhasheaders',action='store_true',dest='header',default=False)
+    parser.add_option('--inputhaslabels',action='store_true',dest='label',default=False)
     parser.add_option('--nopurge',action='store_true',dest='nopurge',default=False)
     parser.add_option('--quiet',action='store_true',dest='quiet',default=False)
     parser.add_option('--nosweep',action='store_true',dest='nosweep',default=False)
@@ -48,7 +50,15 @@ def main():
     # 
     # for the moment, missing values are not handled
     #
-    A = pandas.read_csv(options.inpfile,index_col=0,header=0)
+    if options.header:
+        header=0
+    else:
+        header=None
+    if options.label:
+        label=0
+    else:
+        label=None
+    A = pandas.read_csv(options.inpfile,index_col=label,header=header)
     A = A.fillna(0)
     a = A.values
     
@@ -181,14 +191,22 @@ def main():
     else:
         
         col = ['isa/M'+nf.format(x) for x in range(len(sROB))]
-        
+
         tm = pandas.DataFrame(numpy.vstack([sTHR,sTHC,sROB]),index=idx,columns=col)
         tm.to_csv(ff.replace('csv','info.tsv'),sep='\t')
         
-        tm = pandas.DataFrame(rsSR,index=A.index,columns=col)
+        if options.label:
+            index=A.index
+        else:
+            index=None
+        tm = pandas.DataFrame(rsSR,index=index,columns=col)
         tm.to_csv(ff.replace('csv','rowscore.tsv'),sep='\t')
         
-        tm = pandas.DataFrame(csSC,index=A.columns,columns=col)
+        if options.header:
+            index=A.columns
+        else:
+            index=None
+        tm = pandas.DataFrame(csSC,index=index,columns=col)
         tm.to_csv(ff.replace('csv','colscore.tsv'),sep='\t')        
         
     
