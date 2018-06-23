@@ -183,13 +183,13 @@ def main():
         col = ['isa/M'+nf.format(x) for x in range(len(sROB))]
         
         tm = pandas.DataFrame(numpy.vstack([sTHR,sTHC,sROB]),index=idx,columns=col)
-        tm.to_csv(ff.replace('csv','info.csv'))
+        tm.to_csv(ff.replace('csv','info.tsv'),sep='\t')
         
         tm = pandas.DataFrame(rsSR,index=A.index,columns=col)
-        tm.to_csv(ff.replace('csv','rowscore.csv'))
+        tm.to_csv(ff.replace('csv','rowscore.tsv'),sep='\t')
         
         tm = pandas.DataFrame(csSC,index=A.columns,columns=col)
-        tm.to_csv(ff.replace('csv','colscore.csv'))        
+        tm.to_csv(ff.replace('csv','colscore.tsv'),sep='\t')        
         
     
 if __name__ == '__main__':
