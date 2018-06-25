@@ -13,10 +13,13 @@ def pp(q,str):
     return None
         
 def buildseeds(nr,ns=100,seedsparsity=0):
-    seeds = numpy.random.rand(nr,ns)
-    if seedsparsity!=0:
-        import warnings
-        warnings.warn('seedsparsity!=0 has not been implemented. Using 0.')
+    if seedsparsity<0:
+        seeds = numpy.random.rand(nr,ns)
+    else:
+        seeds = numpy.zeros([nr,ns])
+        for i in range(ns):
+            sl=numpy.random.randint(0,nr-1,seedsparsity)
+            seeds[sl,i]=1
     return seeds
 
 def standardize(rc_a,axis=0):
