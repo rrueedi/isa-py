@@ -19,7 +19,7 @@ def main():
     # seeds are either provided as a matrix (good to reproduce results)
     # or created by ISA 
     #
-    usage = "usage: %prog [options] arg"
+    usage = "usage: %prog [options] arg // 2018-06-25T16:30"
     parser = OptionParser(usage)
     
     parser.add_option('-i','--inputfile',dest='inpfile',type='string')
