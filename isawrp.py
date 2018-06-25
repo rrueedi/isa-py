@@ -213,7 +213,7 @@ def main():
             tm = tm.reset_index()
             col.insert(0,'shift')
             tm.columns = col            
-            tm.to_csv(ff.replace('csv','pseudospectrum.tsv'),index=False,sep='\t',float_format='%.8f')
+            tm.to_csv(ff.replace('csv','colscore.tsv'),index=False,sep='\t',float_format='%.8f')
         else:
             tm = pandas.DataFrame(csSC,index=index,columns=col)
             tm.to_csv(ff.replace('csv','colscore.tsv'),sep='\t',float_format='%.8f')
