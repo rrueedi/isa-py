@@ -42,6 +42,7 @@ def main():
     parser.add_option('--quiet',action='store_true',dest='quiet',default=False)
     parser.add_option('--nosweep',action='store_true',dest='nosweep',default=False)
     parser.add_option('--onefile',action='store_true',dest='onefile',default=False)
+    parser.add_option('--gopseudo',action='store_true',dest='gopseudo',default=False)
     (options, args) = parser.parse_args()
     
     # ----- -------------------
@@ -200,14 +201,22 @@ def main():
         else:
             index=None
         tm = pandas.DataFrame(rsSR,index=index,columns=col)
-        tm.to_csv(ff.replace('csv','rowscore.tsv'),sep='\t')
+        tm.to_csv(ff.replace('csv','rowscore.tsv'),sep='\t',float_format='%.8f')
         
         if options.header:
             index=A.columns
         else:
             index=None
-        tm = pandas.DataFrame(csSC,index=index,columns=col)
-        tm.to_csv(ff.replace('csv','colscore.tsv'),sep='\t')        
+        
+        if options.gopseudo:
+            tm = pandas.DataFrame(csSC,index=index,columns=col)
+            tm = tm.reset_index()
+            col.insert(0,'shift')
+            tm.columns = col            
+            tm.to_csv(ff.replace('csv','pseudospectrum.tsv'),index=False,sep='\t',float_format='%.8f')
+        else:
+            tm = pandas.DataFrame(csSC,index=index,columns=col)
+            tm.to_csv(ff.replace('csv','colscore.tsv'),sep='\t',float_format='%.8f')
         
     
 if __name__ == '__main__':
