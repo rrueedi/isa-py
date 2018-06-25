@@ -19,7 +19,7 @@ def main():
     # seeds are either provided as a matrix (good to reproduce results)
     # or created by ISA 
     #
-    usage = "usage: %prog [options] arg // 20180625T1655"
+    usage = "usage: %prog [options] arg . 20180625T1800"
     parser = OptionParser(usage)
     
     parser.add_option('-i','--inputfile',dest='inpfile',type='string')
@@ -63,7 +63,7 @@ def main():
     A = A.fillna(0)
     a = A.values
     
-    print('/\n/\n/ --- ISA wrapper 2018-06-25/17:45\n/\n/')
+    print('/\n/\n/ --- ISA wrapper 2018-06-25/18:00\n/\n/')
     
     print('\n/ --- matrix : \n      '+'{:d}'.format(a.shape[0])+'x'+'{:d}'.format(a.shape[1]))
     
