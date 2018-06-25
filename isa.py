@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@author: Rico Rueedi
+@author: Rico Rueedi [rrueedi]
 """
 import numpy
 from scipy import stats
