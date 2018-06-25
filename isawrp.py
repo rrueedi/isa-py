@@ -63,7 +63,7 @@ def main():
     A = A.fillna(0)
     a = A.values
     
-    print('/\n/\n/ --- ISA wrapper 2018-04-19/16:00\n/\n/')
+    print('/\n/\n/ --- ISA wrapper 2018-06-25/16:30\n/\n/')
     
     print('\n/ --- matrix : \n      '+'{:d}'.format(a.shape[0])+'x'+'{:d}'.format(a.shape[1]))
     
