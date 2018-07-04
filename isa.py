@@ -114,6 +114,7 @@ def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True)
 
         rsSR_proj = isamultiply(rcCC,csSC_prev)
         rsSR = signature(rsSR_proj,thr,sgr)
+        
 
         mk = (numpy.abs(rsSR)>1e-12).any(axis=0) \
             & (~numpy.isnan(rsSR).any(axis=0))
@@ -122,13 +123,13 @@ def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True)
 
         csSC_proj = isamultiply(crRR,rsSR)
         csSC = signature(csSC_proj,thc,sgc)
-
+        
         mk = (numpy.abs(csSC)>1e-12).any(axis=0) \
             & (~numpy.isnan(csSC).any(axis=0))
         csSC=csSC[:,mk]
         rsSR=rsSR[:,mk]
         csSC_prev=csSC_prev[:,mk]
-
+        
         isconverged = numpy.array(diagcorr(csSC_prev,csSC))>dconverged
 
         csSC_prev=csSC
@@ -139,7 +140,7 @@ def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True)
             rsSR_sub = rsSR[:,isconverged]
             csSC_sub = csSC[:,isconverged]
             sROB_sub = robustness(crRR,rcCC,rsSR_sub,csSC_sub)
-
+            
             sROBF = numpy.concatenate([sROBF,sROB_sub])
 
             esortbyrob = numpy.argsort(-sROBF)
@@ -157,10 +158,10 @@ def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True)
                 sROBF=sROBF[ediff]
                 rsSRF=rsSRF[:,ediff]
                 csSCF=csSCF[:,ediff]
-
+            
         # keep iterating on non-converged
         csSC_prev=csSC_prev[:,~isconverged]
-
+        
         # remove null seeds
         mk = (numpy.abs(csSC_prev)>1e-12).any(axis=0)
         csSC_prev=csSC_prev[:,mk]
@@ -170,17 +171,15 @@ def modisa(crRR,rcCC,rsSR,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True)
 def modcore(crRR,rcCC,rsSR,csSC,sROB,rsSEEDS,sTHR,sTHC,floorROB,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge=True):
     nr, nc = crRR.shape
     rsSRO,csSCO,sROBO = \
-    modisa(crRR,rcCC,rsSEEDS,thr,thc,sgr,sgc,maxiter,dconverged,dsame)
+    modisa(crRR,rcCC,rsSEEDS,thr,thc,sgr,sgc,maxiter,dconverged,dsame,doPurge)
 
-    #print('[%3.1f/%3.1f] found %03d modules (rob floor %.1f)' % (thr,thc,rsSRo.shape[1],floorROB))
     rsSRF = rsSR
     csSCF = csSC
     sROBF = sROB
     sTHRF = sTHR
     sTHCF = sTHC
 
-
-    if (rsSRO.shape[1]>0):
+    if (rsSRO.shape[1]>0)&(doPurge):
         erob = (sROBO>floorROB)
         rsSRO = rsSRO[:,erob]
         csSCO = csSCO[:,erob]
@@ -240,15 +239,12 @@ def isa(rcA,rsSD=None,\
     # ----- -----------
     #       build seeds
     #       ----------- -----
-    #
-    # // missing feature(s)
-    # // allow the user to provide a seed matrix
-    # // implement sparse seeds
+
     if not(type(rsSD)==numpy.ndarray):
         rsSD = \
         buildseeds(nr,ns=nseed,seedsparsity=seedsparsity)
         rsSD_shuffled = \
-        buildseeds(nr,ns=50,seedsparsity=seedsparsity)
+        buildseeds(nr,ns=min([100,nseed]),seedsparsity=seedsparsity)
     else :
         rsSD_shuffled = rsSD
             
@@ -279,9 +275,10 @@ def isa(rcA,rsSD=None,\
             modisa(\
                             crRR_shuffled,rcCC_shuffled,\
                             rsSD_shuffled,thr,thc,sgr,sgc,\
-                            maxiter,dconverged,dsame)
+                            maxiter,dconverged,dsame,doPurge)
             if len(sROB)>0:
                 sfloorROB[jthr,jthc] = numpy.max(sROB)
+                print(sROB)
             else:
                 sfloorROB[jthr,jthc] = 0
             if not(quiet) : print('+',end='',flush=True)

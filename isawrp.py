@@ -103,7 +103,7 @@ def main():
         else:
             sthr = numpy.array([1,2,3])
     else:
-         sthr = float(sthr)       
+         sthr = [float(sthr)]
     print('\n/ --- row thresholds : ')
     print('     ',end='')
     for x in sthr:
@@ -123,7 +123,7 @@ def main():
         else:
             sthc = numpy.array([1,2,3])
     else:
-        sthc = float(sthc)
+        sthc = [float(sthc)]
     print('/ --- column thresholds : ')
     print('     ',end='')
     for x in sthc:
